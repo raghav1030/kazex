@@ -4,7 +4,7 @@ import (
 	"fmt"
 
 	"github.com/gofiber/fiber/v2"
-	"github.com/raghav1030/kazex/cmd/api/protobuf_generated_types/github.com/raghav1030/kazex/cmd/api/protobuf_generated_types"
+	"github.com/raghav1030/kazex/cmd/api/protobuf_generated_types"
 	redis_manager "github.com/raghav1030/kazex/cmd/api/redis"
 	customTypes "github.com/raghav1030/kazex/cmd/api/types"
 	"google.golang.org/protobuf/encoding/protojson"
@@ -26,7 +26,6 @@ func CreateOrder(c *fiber.Ctx) error {
 
 	order := &protobuf_generated_types.MessageToEngine{}
 
-
 	bodyBytes := c.Body()
 
 	err := protojson.Unmarshal(bodyBytes, order)
@@ -36,7 +35,6 @@ func CreateOrder(c *fiber.Ctx) error {
 			"error": err.Error(),
 		})
 	}
-
 	fmt.Println(order)
 
 	feedbackMessage, err := redisManager.SendAndAwait(order)

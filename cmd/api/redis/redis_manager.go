@@ -8,7 +8,7 @@ import (
 	"sync"
 	"time"
 
-	"github.com/raghav1030/kazex/cmd/api/protobuf_generated_types/github.com/raghav1030/kazex/cmd/api/protobuf_generated_types"
+	"github.com/raghav1030/kazex/cmd/api/protobuf_generated_types"
 	"github.com/redis/go-redis/v9"
 	"google.golang.org/protobuf/proto"
 )
