@@ -1,0 +1,20 @@
+syntax = "proto3";
+
+package common;
+
+option go_package = "github.com/raghav1030/kazex/cmd/api/protobuf_generated_types";
+
+// Enums
+enum Side {
+    buy = 0;
+    sell = 1;
+}
+
+enum OrderType {
+    market = 0;
+    limit = 1;
+}
+
+enum Kind {
+    ioc = 0;
+}

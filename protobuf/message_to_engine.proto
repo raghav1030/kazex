@@ -1,0 +1,53 @@
+syntax = "proto3";
+
+package message_to_engine;
+
+option go_package = "github.com/raghav1030/kazex/cmd/api/protobuf_generated_types";
+
+import "common.proto";
+
+message CreateOrderPayload{
+    string market = 1;
+    int32 price = 2;
+    int32 qty = 3;
+    common.Side side = 4;
+    string userId = 5;
+}
+
+message CancelOrderPayload {
+    string orderId = 1;
+    string market = 2;
+}
+
+message OnRampPayload {
+    int32 amount = 1;
+    string userId = 2;
+    string txnId = 3;
+}
+
+message GetDepthPayload {
+    string market = 1;
+}
+
+message GetOpenOrdersPayload {
+    string userId = 1;
+    string market = 2;
+}
+
+enum MessageToEngineType {
+    CREATE_ORDER = 0;
+    CANCEL_ORDER = 1;
+    ON_RAMP = 2;
+    GET_DEPTH = 3;
+    GET_OPEN_ORDERS = 4;
+}
+message MessageToEngine {
+    MessageToEngineType type = 1;
+    oneof payload {
+        CreateOrderPayload create_order = 2;
+        CancelOrderPayload cancel_order = 3;
+        OnRampPayload on_ramp = 4;
+        GetDepthPayload get_depth = 5;
+        GetOpenOrdersPayload get_open_orders = 6;
+    }
+}
