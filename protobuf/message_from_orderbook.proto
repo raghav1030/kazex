@@ -4,7 +4,14 @@ package orderbook_engine_messages;
 
 import "common.proto";
 
-option go_package = "github.com/raghav1030/kazex/cmd/api/protobuf_generated_types";
+option go_package = "./protobuf_generated_types";
+
+enum MessageFromOrderbookType {
+    DEPTH = 0;
+    ORDER_PLACED = 1;
+    ORDER_CANCELLED = 2;
+    OPEN_ORDERS = 3;
+}
 
 message BidAsk {
     string price = 1;
@@ -26,7 +33,7 @@ message OpenOrdersPayload {
     string userId = 6;
 }
 
-message OrderPlacedPayload {
+message OrderCompletedPayload { 
     string orderId = 1;
     int32 executedQty = 2;
     repeated Fills fills = 3;
@@ -45,30 +52,33 @@ message OrderCancelledPayload {
 }
 
 message DepthMessage {
-    string type = 1;
-    DepthPayload payload = 5;
+    MessageFromOrderbookType type = 1;
+    DepthPayload depth_payload = 2;
 }
 
 message OpenOrdersMessage {
-    string type = 1;
-    OpenOrdersPayload payload = 5;
+    MessageFromOrderbookType type = 1;
+    OpenOrdersPayload open_orders_payload = 2;
 }
 
 message OrderCompletedMessage {
-    string type = 1;
-    OrderPlacedPayload payload = 5;
+    MessageFromOrderbookType type = 1;
+    OrderCompletedPayload order_completed_payload = 2;
 }
 
 message OrderCancelledMessage {
-    string type = 1;
-    OrderCancelledPayload payload = 5;
+    MessageFromOrderbookType type = 1;
+    OrderCancelledPayload order_cancelled_payload = 2;
 }
 
+
 message MessageFromOrderBook {
+    MessageFromOrderbookType type = 1;
+
     oneof payload {
-        DepthMessage depth_message = 2;
-        OpenOrdersMessage open_orders_message = 3;
-        OrderCompletedMessage order_completed_message = 4;
-        OrderCancelledMessage order_cancelled_message = 5;
+        DepthPayload depth_payload = 2;
+        OpenOrdersPayload open_orders_payload = 3;
+        OrderCompletedPayload order_completed_payload = 4;
+        OrderCancelledPayload order_cancelled_payload = 5;
     }
 }

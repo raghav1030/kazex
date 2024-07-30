@@ -2,7 +2,7 @@ syntax = "proto3";
 
 package common;
 
-option go_package = "github.com/raghav1030/kazex/cmd/api/protobuf_generated_types";
+option go_package = "./protobuf_generated_types";
 
 // Enums
 enum Side {

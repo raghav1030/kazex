@@ -2,7 +2,7 @@ syntax = "proto3";
 
 package message_to_engine;
 
-option go_package = "github.com/raghav1030/kazex/cmd/api/protobuf_generated_types";
+option go_package = "./protobuf_generated_types";
 
 import "common.proto";
 
@@ -44,10 +44,10 @@ enum MessageToEngineType {
 message MessageToEngine {
     MessageToEngineType type = 1;
     oneof payload {
-        CreateOrderPayload create_order = 2;
-        CancelOrderPayload cancel_order = 3;
-        OnRampPayload on_ramp = 4;
-        GetDepthPayload get_depth = 5;
-        GetOpenOrdersPayload get_open_orders = 6;
+        CreateOrderPayload create_order_payload = 2;
+        CancelOrderPayload cancel_order_payload = 3;
+        OnRampPayload on_ramp_payload = 4;
+        GetDepthPayload get_depth_payload = 5;
+        GetOpenOrdersPayload get_open_orders_payload = 6;
     }
 }

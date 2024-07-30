@@ -11,6 +11,7 @@ func main() {
 	api := app.Group("/api/v1")
 
 	routes.OrderRoutes(api)
+	routes.DepthRoutes(api)
 
 	
 

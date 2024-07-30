@@ -50,7 +50,7 @@ func (m *RedisManager) SendAndAwait(message *protobuf_generated_types.MessageToE
 	subscriber := m.client.Subscribe(ctxWithTimeout, clientId)
 	defer subscriber.Close()
 
-	// pubsubChannel := subscriber.Channel()
+	pubsubChannel := subscriber.Channel()
 
 	messageData, err := proto.Marshal(message)
 
@@ -83,22 +83,20 @@ func (m *RedisManager) SendAndAwait(message *protobuf_generated_types.MessageToE
 		return &protobuf_generated_types.MessageFromOrderBook{}, err
 	}
 
-	return &protobuf_generated_types.MessageFromOrderBook{}, nil
+	// return &protobuf_generated_types.MessageFromOrderBook{}, nil
 
-	// for {
-	// 	select {
-	// 	case msg := <-pubsubChannel:
-	// 		var messageFromOrderbook *protobuf_generated_types.MessageFromOrderBook
-	// 		decodedMessage := proto.Unmarshal([]byte(msg.Payload), messageFromOrderbook)
-	// 		if msg.Payload == clientId {
-	// 			return &protobuf_generated_types.MessageFromOrderBook{
-	// 				Type: "yoyo",
-	// 			}, nil
-	// 		}
-	// 	case <-ctxWithTimeout.Done():
-	// 		return &protobuf_generated_types.MessageFromOrderBook{}, ctxWithTimeout.Err()
-	// 	}
-	// }
+	for {
+		select {
+		case msg := <-pubsubChannel:
+			if msg.Payload == clientId {
+				// var messageFromOrderbook *protobuf_generated_types.MessageFromOrderBook
+				// decodedMessage := proto.Unmarshal([]byte(msg.Payload), messageFromOrderbook)
+				// return decodedMessage, nil 
+			}
+		case <-ctxWithTimeout.Done():
+			return &protobuf_generated_types.MessageFromOrderBook{}, ctxWithTimeout.Err()
+		}
+	}
 
 }
 
