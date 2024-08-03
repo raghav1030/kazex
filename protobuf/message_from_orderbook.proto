@@ -1,6 +1,6 @@
 syntax = "proto3";
 
-package orderbook_engine_messages;
+package custom_types.orderbook_engine_messages;
 
 import "common.proto";
 

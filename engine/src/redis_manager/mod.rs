@@ -5,7 +5,7 @@ use std::sync::Mutex;
 pub mod redis_manager {
     use redis::{Commands, Connection};
 
-    use crate::custom_types::DBMessage;
+    use crate::{custom_types, types::DBMessage};
 
     use super::*;
 
@@ -31,10 +31,10 @@ pub mod redis_manager {
             let client = Self::get_redis_client().expect("Failed to create Redis client");
             RedisManager { client }
         }
-    
 
         pub fn instance() -> &'static Mutex<RedisManager> {
-            static INSTANCE: Lazy<Mutex<RedisManager>> = Lazy::new(|| Mutex::new(RedisManager::new()));
+            static INSTANCE: Lazy<Mutex<RedisManager>> =
+                Lazy::new(|| Mutex::new(RedisManager::new()));
             &INSTANCE
         }
 
@@ -42,17 +42,35 @@ pub mod redis_manager {
             &self.client
         }
 
-        pub fn push_message(&self, message : &DBMessage, conn : &mut Connection) -> redis::RedisResult<()> {
-            conn.lpush("db_processor", serde_json::to_string(message).expect("Failed to serialize message"))?;
+        pub fn push_message(
+            &self,
+            message: &DBMessage,
+            conn: &mut Connection,
+        ) -> redis::RedisResult<()> {
+            conn.lpush(
+                "db_processor",
+                serde_json::to_string(message).expect("Failed to serialize message"),
+            )?;
             Ok(())
         }
 
-        pub fn publish_message_on_ws(&self, channel : &String, message : &DBMessage, conn : &mut Connection) -> redis::RedisResult<()> {
-            conn.publish(channel, serde_json::to_string(message).expect("Failed to serialize message"))?;
+        pub fn publish_message_on_ws(
+            &self,
+            channel: &String,
+            message: &DBMessage,
+            conn: &mut Connection,
+        ) -> redis::RedisResult<()> {
+            conn.publish(
+                channel,
+                serde_json::to_string(message).expect("Failed to serialize message"),
+            )?;
             Ok(())
         }
 
-        // pub fn send_message_to_api(client_id : &String, message)
+        pub fn send_message_to_api(client_id : &String, message : &custom_types::orderbook_engine_messages::MessageFromOrderBook, conn : &mut Connection) -> redis::RedisResult<()> {
+            conn.publish(client_id, serde_json::to_string(message).expect("Failed to serialize message"))?;
+            Ok(())
+
+        }
     }
 }
-

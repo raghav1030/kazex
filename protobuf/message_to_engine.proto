@@ -1,6 +1,6 @@
 syntax = "proto3";
 
-package message_to_engine;
+package custom_types.message_to_engine;
 
 option go_package = "./protobuf_generated_types";
 
