@@ -5,6 +5,7 @@ import (
 	"crypto/rand"
 	"encoding/hex"
 	"encoding/json"
+	"fmt"
 	"sync"
 	"time"
 
@@ -44,7 +45,7 @@ func (m *RedisManager) SendAndAwait(message *protobuf_generated_types.MessageToE
 
 	clientId, _ := GenerateClientId()
 
-	ctxWithTimeout, cancel := context.WithTimeout(ctx, 2*time.Second)
+	ctxWithTimeout, cancel := context.WithTimeout(ctx, 60*time.Second)
 	defer cancel()
 
 	subscriber := m.client.Subscribe(ctxWithTimeout, clientId)
@@ -52,7 +53,9 @@ func (m *RedisManager) SendAndAwait(message *protobuf_generated_types.MessageToE
 
 	pubsubChannel := subscriber.Channel()
 
+	fmt.Println("message data : ", message)
 	messageData, err := proto.Marshal(message)
+	fmt.Println("message in proto: ", messageData)
 
 	if err != nil {
 		return &protobuf_generated_types.MessageFromOrderBook{}, err
