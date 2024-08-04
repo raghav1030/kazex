@@ -1,6 +1,7 @@
 pub mod config;
 pub mod redis_manager;
 pub mod types;
+pub mod process;
 pub mod custom_types {
     pub mod orderbook_engine_messages {
         include!(concat!(

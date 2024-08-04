@@ -42,7 +42,7 @@ pub mod redis_manager {
             &self.client
         }
 
-        pub fn push_message(
+        pub async fn push_message(
             &self,
             message: &DBMessage,
             conn: &mut Connection,
@@ -54,7 +54,7 @@ pub mod redis_manager {
             Ok(())
         }
 
-        pub fn publish_message_on_ws(
+        pub async fn publish_message_on_ws(
             &self,
             channel: &String,
             message: &DBMessage,
@@ -67,7 +67,7 @@ pub mod redis_manager {
             Ok(())
         }
 
-        pub fn send_message_to_api(client_id : &String, message : &custom_types::orderbook_engine_messages::MessageFromOrderBook, conn : &mut Connection) -> redis::RedisResult<()> {
+        pub async fn send_message_to_api(client_id : &String, message : &custom_types::orderbook_engine_messages::MessageFromOrderBook, conn : &mut Connection) -> redis::RedisResult<()> {
             conn.publish(client_id, serde_json::to_string(message).expect("Failed to serialize message"))?;
             Ok(())
 
