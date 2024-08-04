@@ -19,6 +19,7 @@ prost-serde-derive = "0.1.5"
 prost-wkt = "0.6"
 prost-wkt-types = "0.6"
 base64 = "0.22.1"
+rand = "0.8.5"
 
 
 

@@ -11,27 +11,27 @@ pub struct Order {
     #[serde(rename = "orderId")]
     pub order_id: String,
     pub filled: i32,
-    pub side: Side,
+    pub side: String,
     #[serde(rename = "userId")]
     pub user_id: String,
 }
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct Fill {
-    pub price: String,
+    pub price: i32,
     pub qty: i32,
     #[serde(rename = "tradeId")]
-    pub trade_id: i32,
+    pub trade_id: i128,
     #[serde(rename = "otherUserId")]
     pub other_user_id: String,
     #[serde(rename = "markerOrderId")]
     pub market_order_id: String,
 }
 
-struct BalanceType{
+pub struct BalanceType{
     pub available : i64,
     pub locked : i64
 }
 pub struct UserBalance {
-    balance : HashMap<String, BalanceType>
+    pub balance : HashMap<String, BalanceType>
 }
