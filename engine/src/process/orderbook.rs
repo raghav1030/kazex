@@ -15,7 +15,7 @@ pub struct Orderbook {
     #[serde(rename = "lastTradedId")]
     pub last_traded_id: i128,
     #[serde(rename = "currentPrice")]
-    pub current_price: i128,
+    pub current_price: i32,
 }
 
 impl Orderbook {
@@ -24,8 +24,8 @@ impl Orderbook {
         asks: Vec<Order>,
         base_asset: String,
         quote_asset: String,
-        last_traded_id: String,
-        current_price: String,
+        last_traded_id: i128,
+        current_price: i32,
     ) -> Orderbook {
         Orderbook {
             bids,
@@ -41,11 +41,16 @@ impl Orderbook {
         format!("{}_{}", self.base_asset, self.quote_asset)
     }
 
-    pub fn add_order(&self, order: Order) -> (i64, Vec<Fill>) {
+    pub fn add_order(&self, order: Order) -> (i32, Vec<Fill>) {
+
         if order.side == "buy" {
             let (executedQty, fills) = self.match_bids(order);
-        } else {
+            return (executedQty, fills);
         }
+
+        
+        
+
     }
 
     pub fn match_bids(&mut self, order: Order) -> (i32, Vec<Fill>) {
@@ -69,7 +74,7 @@ impl Orderbook {
             }
         }
 
-        
+
 
         (executedQty, fills)
     }
