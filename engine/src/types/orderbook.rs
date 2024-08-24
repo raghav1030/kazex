@@ -4,7 +4,7 @@ use serde::{Deserialize, Serialize};
 
 use super::Side;
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct Order {
     pub price: i32,
     pub qty: i32,

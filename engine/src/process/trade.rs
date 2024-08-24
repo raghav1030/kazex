@@ -1,99 +1,14 @@
-// use std::collections::HashMap;
-// use std::convert::TryFrom;
-
-// use prost::Message;
-
-// use crate::{
-//     custom_types::orderbook_engine_messages::{
-//         message_from_order_book, MessageFromOrderBook, MessageFromOrderbookType,
-//     },
-//     types::{MessageFromApi, UserBalance},
-// };
-
-// use super::orderbook::Orderbook;
-
-// pub struct Engine {
-//     pub orderbook: Vec<Orderbook>,
-//     pub balance: HashMap<String, UserBalance>,
-// }
-
-// impl Engine {
-//     pub async fn process(message: &MessageFromApi) {
-//         // Convert Box<Vec<u8>> to &[u8]
-//         // let payload = &message.message.into_bytes().as_slice();
-//         let payload = Box::new(&message.message.into_bytes().as_ref());
-//         // Decode the Protobuf message
-//         match MessageFromOrderBook::decode(payload) {
-//             Ok(decoded_message) => {
-//                 println!("Decoded Protobuf message: {:?}", decoded_message);
-//                 match MessageFromOrderbookType::try_from(decoded_message.r#type) {
-//                     Ok(MessageFromOrderbookType::OrderCancelled) => {
-//                         if let Some(payload) = decoded_message.payload {
-//                             if let message_from_order_book::Payload::OrderCancelledPayload(
-//                                 order_cancelled_payload,
-//                             ) = payload
-//                             {
-//                                 println!("Order cancelled payload: {:?}", order_cancelled_payload);
-//                                 // Process order cancelled payload
-//                             }
-//                         }
-//                     }
-//                     Ok(MessageFromOrderbookType::Depth) => {
-//                         if let Some(payload) = decoded_message.payload {
-//                             if let message_from_order_book::Payload::DepthPayload(depth_payload) =
-//                                 payload
-//                             {
-//                                 println!("Depth payload: {:?}", depth_payload);
-//                                 // Process depth payload
-//                             }
-//                         }
-//                     }
-//                     Ok(MessageFromOrderbookType::OrderPlaced) => {
-//                         if let Some(payload) = decoded_message.payload {
-//                             if let message_from_order_book::Payload::OrderCompletedPayload(
-//                                 order_completed_payload,
-//                             ) = payload
-//                             {
-//                                 println!("Order completed payload: {:?}", order_completed_payload);
-//                                 // Process order completed payload
-//                             }
-//                         }
-//                     }
-//                     Ok(MessageFromOrderbookType::OpenOrders) => {
-//                         if let Some(payload) = decoded_message.payload {
-//                             if let message_from_order_book::Payload::OpenOrdersPayload(
-//                                 open_orders_payload,
-//                             ) = payload
-//                             {
-//                                 println!("Open orders payload: {:?}", open_orders_payload);
-//                                 // Process open orders payload
-//                             }
-//                         }
-//                     }
-//                     Err(_) => {
-//                         println!("Unknown message type: {}", decoded_message.r#type);
-//                     }
-//                 }
-//             }
-//             Err(e) => {
-//                 println!("Failed to decode Protobuf message: {}", e);
-//             }
-//         }
-//     }
-// }
-
 use std::convert::TryFrom;
-use std::error::Error;
+use std::{env, fs};
 use std::{collections::HashMap, fmt::Error};
 
 use prost::Message;
+use prost_types::Value;
 use rand::{random, Rng};
-use serde_json::Error;
 
-use crate::types::Order;
+use crate::types::{Fill, Order};
 use crate::{
     custom_types::{
-        common,
         message_to_engine::{
             self, message_to_engine::Payload, MessageToEngine, MessageToEngineType,
         },
@@ -113,7 +28,29 @@ pub struct Engine {
 }
 
 impl Engine {
-    pub async fn process(&self, message: &MessageFromApi) {
+
+    pub fn new(&self) -> Engine {
+        match env::var("WITH_SNAPSHOT") {
+            Ok(val) => {
+                if val == "true" {
+                    if let Ok(snapshot) = fs::read_to_string("../utils/snapshot.json") {
+                        let v : Value = serde_json::from_str(&snapshot).expect("Failed to parse JSON string");
+                    }
+                }
+            },
+            Err(e) => println!("Failed to read environment variable: {}", e),
+        }
+        
+
+        let orderbook : Vec<Orderbook> = Vec::new();
+        let balances : HashMap<String, UserBalance> = HashMap::new();
+        Engine {
+            orderbooks: Vec::new(),
+            balances: HashMap::new(),
+        }
+    }
+
+    pub async fn process(&mut self, message: &MessageFromApi) {
         // Convert Box<Vec<u8>> to &[u8]
         // let payload = message.message.as_ref();
         // Decode the Protobuf message
@@ -156,7 +93,7 @@ impl Engine {
                             println!("Create Order payload: {:?}", payload);
 
                             // let (executed_qty, fills, order_id) = Engine::create_order(&mut self, &payload);
-                            let (executed_qty, fills, order_id) = &self.create_order(&payload);
+                            let (executed_qty, fills, order_id) = self.create_order(&payload);
                         }
                     }
 
@@ -205,39 +142,54 @@ impl Engine {
         }
     }
 
-    pub fn create_order(&mut self, payload: &message_to_engine::CreateOrderPayload) {
-        let orderbook = self
-            .orderbooks
-            .iter()
-            .find(|orderbook| orderbook.ticker() == payload.market);
-
+    pub fn create_order(
+        &mut self,
+        payload: &message_to_engine::CreateOrderPayload,
+    ) -> (i32, Vec<Fill>, String) {
         let base_asset = payload.market.split("_").next().unwrap();
         let quote_asset = payload.market.split("_").last().unwrap();
 
-        if orderbook.is_none() {
-            panic!("Orderbook not found for market: {}", payload.market);
-        } else {
-            &self.check_and_lock_funds(
-                &base_asset.to_string(),
-                &quote_asset.to_string(),
-                &payload.side().as_str_name().to_string(),
-                &payload.price,
-                &payload.qty,
-                &payload.user_id,
-                &quote_asset.to_string(),
-            );
-            let order = Order {
-                price: payload.price,
-                qty: payload.qty,
-                order_id: self.generate_order_id(10),
-                filled: 0,
-                side: payload.side().as_str_name().to_string(),
-                user_id: payload.user_id.clone(),
-            };
+        match self.check_and_lock_funds(
+            &base_asset.to_string(),
+            &quote_asset.to_string(),
+            &payload.side().as_str_name().to_string(),
+            &payload.price,
+            &payload.qty,
+            &payload.user_id,
+            // &quote_asset.to_string(),
+        ) {
+            Ok(_) => {}
+            Err(e) => {
+                println!("Error: {}", e);
+                return (0, Vec::new(), e.to_string());
+            }
+        }
+
+        let orderbook = self
+            .orderbooks
+            .iter_mut()
+            .find(|orderbook| orderbook.ticker() == payload.market);
+
+        match orderbook {
+            Some(ob) => {
+                let mut order = Order {
+                    price: payload.price,
+                    qty: payload.qty,
+                    order_id: Engine::generate_order_id(10),
+                    filled: 0,
+                    side: payload.side().as_str_name().to_string(),
+                    user_id: payload.user_id.clone(),
+                };
+
+                let (executed_qty, fills) = ob.add_order(&mut order);
+                (executed_qty, fills, order.order_id.clone())
+            }
+
+            None => {
+                panic!("Orderbook not found for market: {}", payload.market);
+            }
         }
     }
-
-    // (executed_qty, fills, order_id)
 
     pub fn check_and_lock_funds(
         &mut self,
@@ -247,7 +199,7 @@ impl Engine {
         price: &i32,
         qty: &i32,
         user_id: &String,
-        asset: &String,
+        // asset: &String,
     ) -> Result<(), String> {
         // Check if the user has enough funds to place the order
         // Lock the funds
@@ -276,7 +228,7 @@ impl Engine {
         Ok(())
     }
 
-    pub fn generate_order_id(&self, len: usize) -> String {
+    pub fn generate_order_id(len: usize) -> String {
         const CHARSET: &[u8] = b"ABCDEFGHIJKLMNOPQRSTUVWXYZ\
         abcdefghijklmnopqrstuvwxyz\
         0123456789)(*&^%$#@!~";
