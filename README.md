@@ -1,6 +1,3 @@
-
----
-
 ### **1. Introduction**
 A centralized exchange (CEX) is a platform that facilitates the trading of assets, such as stocks and cryptocurrencies, by providing a secure and efficient way for users to swap one asset for another. The exchange aggregates buy and sell orders in real-time, creating a marketplace where users can trade assets like INR for TATA stocks, or cryptocurrencies like ETH for BTC.
 
